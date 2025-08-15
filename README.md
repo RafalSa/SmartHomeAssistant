@@ -29,13 +29,25 @@ It provides centralized control over multiple systems via a lightweight, modular
 
 ## 📂 Project Structure
 
-SmartHomeAssistant/
-│
-├── main.py # Application entry point
-├── lighting.py # Lighting control module
-├── blinds.py # Blinds/shutters control module
-├── cameras.py # Security cameras module
-├── locks.py # Electric locks module
-├── heating.py # Home heating module
-├── requirements.txt # Python dependencies
-└── README.md # Project documentation
+SmartHomeAssistant/  
+│  
+├── main.py # Application entry point  
+├── lighting.py # Lighting control module  
+├── blinds.py # Blinds/shutters control module  
+├── cameras.py # Security cameras module  
+├── locks.py # Electric locks module  
+├── heating.py # Home heating module  
+├── requirements.txt # Python dependencies  
+└── README.md # Project documentation  
+
+## 👥 Authors
+
+- **Rafał Sak** – Project creator, Python developer, UI design, database architecture  
+  GitHub: [RafalSa](https://github.com/RafalSa)  
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.  
+You are free to use, modify, and distribute this software for personal and commercial purposes, provided that the original author is credited.
