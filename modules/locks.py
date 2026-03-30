@@ -1,15 +1,26 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+from modules.base_device import SmartDevice
 from voice_utils import say
 
-def handle_locks(command):
-    if "Zamki w domu" in command and ("otwórz" in command or "otwórz drzwi" in command):
-        say("Otwieram twoj dom.")
-        # Tu będzie np. MQTT lub GPIO
-    elif "Zamki w domu" in command and ("zamknij" in command or "zamknij drzwi" in command):
-        say("Zamykam twoj dom.")
-    else:
-        return False  # Komenda nieobsługiwana
-    return True
+class Lock(SmartDevice):
+    def __init__(self, name="Zamek główny"):
+        super().__init__(name)
+        if 'is_locked' not in self.state:
+            self.state['is_locked'] = True
+
+    def open(self):
+        if not self.state['is_locked']:
+            say(f"{self.name} jest już otwarty.")
+        else:
+            self.state['is_locked'] = False
+            self.save_state()
+            say(f"Otwieram {self.name}.")
+
+    def close(self):
+        if self.state['is_locked']:
+            say(f"{self.name} jest już zamknięty.")
+        else:
+            self.state['is_locked'] = True
+            self.save_state()
+            say(f"Zamykam {self.name}.")
+
+front_door = Lock("Drzwi wejściowe")

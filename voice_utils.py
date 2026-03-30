@@ -4,45 +4,47 @@ import pyttsx3
 # Inicjalizacja silnika mowy
 engine = pyttsx3.init()
 
+
 def say(text):
     engine.say(text)
     engine.runAndWait()
 
+
 def listen_for_input():
     recognizer = sr.Recognizer()
 
-    # Ustawienia mikrofonu
-    recognizer.energy_threshold = 4000  # Zwiększenie progu czułości
-    recognizer.dynamic_energy_threshold = True  # Dynamiczna zmiana czułości
+    # Próg czułości dostosowany do domowych warunków
+    recognizer.energy_threshold = 300
+    recognizer.dynamic_energy_threshold = True
 
-    with sr.Microphone() as source:
-        print("Czekam na odpowiedź...")
+    # Używamy sprawdzonego, fizycznego wejścia mikrofonu
+    with sr.Microphone(device_index=2) as source:
+        print("Czekam na odpowiedź (mów teraz)...")
 
-        # Redukcja szumów tła
-        recognizer.adjust_for_ambient_noise(source, duration=1)
+        # Szybka kalibracja tła
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
 
         try:
-            # Słuchanie w sposób asynchroniczny
+            # Słuchamy z rozsądnymi limitami czasu
             audio = recognizer.listen(source, timeout=5, phrase_time_limit=5)
-
-            # Rozpoznawanie mowy z Google
             result = recognizer.recognize_google(audio, language='pl-PL')
-            print("Rozpoznano:", result)
+            print(f"Rozpoznano: {result}")
             return result.lower()
 
+        except sr.WaitTimeoutError:
+
+            return ""
         except sr.UnknownValueError:
-            # W przypadku, gdy Google nie rozpozna mowy
-            say("Nie zrozumiałem, spróbuj ponownie.")
+            print("Nie zrozumiałem, spróbuj ponownie.")
             return ""
         except sr.RequestError:
-            # W przypadku błędów związanych z siecią
-            say("Błąd połączenia z serwisem rozpoznawania mowy.")
+            print("Błąd połączenia z internetem (Google wymaga sieci).")
             return ""
         except Exception as e:
-            # Obsługa innych błędów
-            say(f"Wystąpił błąd: {str(e)}")
+            print(f"Wystąpił błąd: {str(e)}")
             return ""
 
-# Testowanie funkcji
-say("Proszę podać komendę")
-listen_for_input()
+
+if __name__ == "__main__":
+    say("Proszę podać komendę")
+    listen_for_input()

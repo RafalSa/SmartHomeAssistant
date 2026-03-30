@@ -1,15 +1,27 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+from modules.base_device import SmartDevice
 from voice_utils import say
 
-def handle_lighting(command):
-    if "światło w salonie" in command and ("zapal" in command or "włącz" in command):
-        say("Włączam światło w salonie.")
-        # Tu będzie np. MQTT lub GPIO
-    elif "światło w salonie" in command and "wyłącz" in command:
-        say("Wyłączam światło w salonie.")
-    else:
-        return False  # Komenda nieobsługiwana
-    return True
+class Light(SmartDevice):
+    def __init__(self, name="Oświetlenie domowe"):
+        super().__init__(name)
+        # Ustawiamy stan domyślny tylko, jeśli nie wczytało niczego z JSONa
+        if 'is_on' not in self.state:
+            self.state['is_on'] = False
+
+    def turn_on(self):
+        if self.state['is_on']:
+            say(f"{self.name} jest już włączone.")
+        else:
+            self.state['is_on'] = True
+            self.save_state()
+            say(f"Włączam {self.name}.")
+
+    def turn_off(self):
+        if not self.state['is_on']:
+            say(f"{self.name} jest już wyłączone.")
+        else:
+            self.state['is_on'] = False
+            self.save_state()
+            say(f"Wyłączam {self.name}.")
+
+living_room_light = Light("Światło w salonie")
