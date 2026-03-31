@@ -1,50 +1,60 @@
 import speech_recognition as sr
 import pyttsx3
+import threading
+import queue
 
-# Inicjalizacja silnika mowy
-engine = pyttsx3.init()
+# Profesjonalna kolejka FIFO (First-In, First-Out) bezpieczna dla wątków
+speech_queue = queue.Queue()
+
+
+def _speak_worker():
+    """Dedykowany wątek roboczy do obsługi syntezatora mowy."""
+    engine = pyttsx3.init()
+
+    while True:
+        text = speech_queue.get()
+        if text is None:
+            break
+
+        try:
+            engine.say(text)
+            engine.runAndWait()
+        except Exception as e:
+            print(f"Błąd syntezatora mowy: {e}")
+        finally:
+            speech_queue.task_done()
+
+
+# Uruchamiamy naszego "pracownika" w tle
+speaker_thread = threading.Thread(target=_speak_worker, daemon=True)
+speaker_thread.start()
 
 
 def say(text):
-    engine.say(text)
-    engine.runAndWait()
+    """Wrzuć tekst do kolejki bez blokowania GUI"""
+    speech_queue.put(text)
 
 
 def listen_for_input():
     recognizer = sr.Recognizer()
-
-    # Próg czułości dostosowany do domowych warunków
     recognizer.energy_threshold = 300
     recognizer.dynamic_energy_threshold = True
 
-    # Używamy sprawdzonego, fizycznego wejścia mikrofonu
     with sr.Microphone(device_index=2) as source:
-        print("Czekam na odpowiedź (mów teraz)...")
-
-        # Szybka kalibracja tła
         recognizer.adjust_for_ambient_noise(source, duration=0.5)
 
         try:
-            # Słuchamy z rozsądnymi limitami czasu
             audio = recognizer.listen(source, timeout=5, phrase_time_limit=5)
             result = recognizer.recognize_google(audio, language='pl-PL')
-            print(f"Rozpoznano: {result}")
             return result.lower()
 
         except sr.WaitTimeoutError:
-
             return ""
         except sr.UnknownValueError:
-            print("Nie zrozumiałem, spróbuj ponownie.")
             return ""
         except sr.RequestError:
-            print("Błąd połączenia z internetem (Google wymaga sieci).")
+            print("Błąd połączenia z internetem.")
             return ""
         except Exception as e:
-            print(f"Wystąpił błąd: {str(e)}")
+            print(f"Wystąpił błąd mikrofonu: {str(e)}")
             return ""
-
-
-if __name__ == "__main__":
-    say("Proszę podać komendę")
-    listen_for_input()
